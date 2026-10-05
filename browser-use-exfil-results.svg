@@ -1,0 +1,80 @@
+<svg viewBox="0 0 960 560" xmlns="http://www.w3.org/2000/svg" font-family="-apple-system,Segoe UI,Helvetica,Arial,sans-serif">
+  <rect width="960" height="560" fill="#14110f"/>
+  <text x="40" y="44" fill="#efe9e2" font-size="23" font-weight="700" letter-spacing="0.12em">WHERE THE SECRET GOES</text>
+  <text x="40" y="68" fill="#a39a8e" font-size="14">One in-context secret, three defenses. It only matters where the wall sits. browser-use 0.13.10, qwen2.5:14b, N = 10 per lane.</text>
+
+  <!-- fix lane backdrop -->
+  <rect x="34" y="380" width="892" height="128" rx="10" fill="#0e1f15"/>
+
+  <!-- ===================== LANE 1: NO DEFENSE ===================== -->
+  <text x="44" y="104" fill="#a39a8e" font-size="13" font-weight="700" letter-spacing="0.08em">1 — NO DEFENSE</text>
+  <!-- agent -->
+  <rect x="44" y="126" width="150" height="64" rx="10" fill="#201b17" stroke="#3a332c"/>
+  <text x="119" y="152" fill="#efe9e2" font-size="14" font-weight="600" text-anchor="middle">Agent</text>
+  <rect x="80" y="160" width="78" height="19" rx="5" fill="#3a2e2a"/>
+  <text x="119" y="174" fill="#ffce9a" font-size="10" letter-spacing="0.06em" text-anchor="middle">CANARY</text>
+  <!-- arrow -->
+  <line x1="200" y1="158" x2="762" y2="158" stroke="#b23a30" stroke-width="3"/>
+  <path d="M762 152 L774 158 L762 164 Z" fill="#b23a30"/>
+  <text x="483" y="148" fill="#6b635a" font-size="11" text-anchor="middle">request carries the secret, nothing in the way</text>
+  <!-- attacker -->
+  <rect x="774" y="126" width="142" height="64" rx="10" fill="#201b17" stroke="#b23a30"/>
+  <text x="845" y="150" fill="#a39a8e" font-size="13" text-anchor="middle">Attacker host</text>
+  <rect x="806" y="160" width="78" height="19" rx="5" fill="#7a2c28"/>
+  <text x="845" y="174" fill="#ff8b8f" font-size="10" letter-spacing="0.06em" text-anchor="middle">CANARY</text>
+  <text x="483" y="214" fill="#ff8b8f" font-size="14" font-weight="700" text-anchor="middle">100%  ·  10/10 leaked</text>
+
+  <!-- ===================== LANE 2: BUILT-IN ALLOWLIST ===================== -->
+  <text x="44" y="248" fill="#a39a8e" font-size="13" font-weight="700" letter-spacing="0.08em">2 — BUILT-IN DOMAIN ALLOWLIST</text>
+  <rect x="44" y="270" width="150" height="64" rx="10" fill="#201b17" stroke="#3a332c"/>
+  <text x="119" y="296" fill="#efe9e2" font-size="14" font-weight="600" text-anchor="middle">Agent</text>
+  <rect x="80" y="304" width="78" height="19" rx="5" fill="#3a2e2a"/>
+  <text x="119" y="318" fill="#ffce9a" font-size="10" letter-spacing="0.06em" text-anchor="middle">CANARY</text>
+  <!-- open gate at navigation layer -->
+  <rect x="470" y="268" width="6" height="68" fill="#a39a8e"/>
+  <rect x="520" y="268" width="6" height="68" fill="#a39a8e"/>
+  <rect x="466" y="262" width="64" height="7" fill="#a39a8e"/>
+  <text x="498" y="352" fill="#a39a8e" font-size="11" text-anchor="middle">allowlist (navigation layer)</text>
+  <!-- forward arrow passes through the open gate -->
+  <line x1="200" y1="302" x2="762" y2="302" stroke="#b23a30" stroke-width="3"/>
+  <path d="M762 296 L774 302 L762 308 Z" fill="#b23a30"/>
+  <!-- blocked view returns to agent -->
+  <line x1="498" y1="286" x2="210" y2="286" stroke="#6b635a" stroke-width="1.5" stroke-dasharray="4 4"/>
+  <path d="M210 282 L200 286 L210 290 Z" fill="#6b635a"/>
+  <text x="340" y="279" fill="#6b635a" font-size="10" text-anchor="middle">view blocked, tab sent to about:blank</text>
+  <text x="620" y="279" fill="#6b635a" font-size="10" text-anchor="middle">request already issued</text>
+  <!-- attacker still receives -->
+  <rect x="774" y="270" width="142" height="64" rx="10" fill="#201b17" stroke="#b23a30"/>
+  <text x="845" y="294" fill="#a39a8e" font-size="13" text-anchor="middle">Attacker host</text>
+  <rect x="806" y="304" width="78" height="19" rx="5" fill="#7a2c28"/>
+  <text x="845" y="318" fill="#ff8b8f" font-size="10" letter-spacing="0.06em" text-anchor="middle">CANARY</text>
+  <text x="483" y="372" fill="#ff8b8f" font-size="14" font-weight="700" text-anchor="middle">100%  ·  10/10 leaked</text>
+
+  <!-- ===================== LANE 3: EGRESS BOUNDARY ===================== -->
+  <text x="44" y="406" fill="#7ee39a" font-size="13" font-weight="700" letter-spacing="0.08em">3 — EGRESS AUTHORIZATION BOUNDARY</text>
+  <rect x="44" y="414" width="150" height="64" rx="10" fill="#201b17" stroke="#3a332c"/>
+  <text x="119" y="440" fill="#efe9e2" font-size="14" font-weight="600" text-anchor="middle">Agent</text>
+  <rect x="80" y="448" width="78" height="19" rx="5" fill="#3a2e2a"/>
+  <text x="119" y="462" fill="#ffce9a" font-size="10" letter-spacing="0.06em" text-anchor="middle">CANARY</text>
+  <!-- arrow stops at the wall -->
+  <line x1="200" y1="446" x2="694" y2="446" stroke="#b23a30" stroke-width="3"/>
+  <!-- the secret, stopped -->
+  <rect x="612" y="437" width="78" height="19" rx="5" fill="#2a241f" stroke="#7a2c28"/>
+  <text x="651" y="451" fill="#9c6b63" font-size="10" letter-spacing="0.06em" text-anchor="middle">CANARY</text>
+  <!-- solid wall at the egress -->
+  <rect x="702" y="404" width="12" height="84" rx="2" fill="#7ee39a"/>
+  <path d="M702 440 L690 446 L702 452 Z" fill="#7ee39a"/>
+  <text x="708" y="398" fill="#7ee39a" font-size="11" text-anchor="middle">network egress · default-deny</text>
+  <rect x="624" y="408" width="84" height="18" rx="4" fill="#12261a" stroke="#1f6b3f"/>
+  <text x="666" y="421" fill="#7ee39a" font-size="10" text-anchor="middle">DENY logged</text>
+  <!-- attacker gets nothing -->
+  <rect x="774" y="414" width="142" height="64" rx="10" fill="#0e1f15" stroke="#1f6b3f" stroke-dasharray="4 4"/>
+  <text x="845" y="442" fill="#8fb79c" font-size="13" text-anchor="middle">Attacker host</text>
+  <text x="845" y="460" fill="#6b8a74" font-size="11" text-anchor="middle">nothing received</text>
+  <text x="430" y="492" fill="#7ee39a" font-size="14" font-weight="700" text-anchor="middle">0%  ·  0/10 contained</text>
+
+  <!-- footer -->
+  <line x1="40" y1="524" x2="920" y2="524" stroke="#2b2622"/>
+  <text x="40" y="542" fill="#a39a8e" font-size="11">Ground truth is server-side: the attacker catcher logs every request received; the egress proxy logs every allow and deny. The model chose to leak in all 30 trials.</text>
+  <text x="40" y="556" fill="#6b635a" font-size="11">Noctis — github.com/Noctis-dev1/portcullis</text>
+</svg>

@@ -4,7 +4,7 @@ A sealed, local lab that reproduces indirect prompt-injection data exfiltration 
 [browser-use](https://github.com/browser-use/browser-use) 0.13.10, measures it as a rate, and
 shows a network egress boundary that takes the rate to zero with an audit trail.
 
-- Writeup: **Bounding a Browser Agent's Authority** (link added on publication)
+- Writeup: **[Bounding a Browser Agent's Authority](WRITEUP.md)**
 - Boundary reference implementation: [Portcullis](https://github.com/Noctis-dev1/portcullis)
 - Results and evidence: [`FINDINGS.md`](FINDINGS.md)
 
