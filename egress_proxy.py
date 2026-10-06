@@ -17,6 +17,8 @@ Run:  python3 egress_proxy.py
 import datetime
 import http.server
 import os
+import select
+import socket
 import socketserver
 import urllib.request
 import urllib.error
@@ -55,9 +57,50 @@ class Proxy(http.server.BaseHTTPRequestHandler):
         pass
 
     def do_CONNECT(self):
-        # HTTPS tunnels are default-denied (no HTTPS origin is declared in this lab).
-        audit("DENY-CONNECT", self.path)
-        self.send_error(403, "Egress blocked by authorization boundary")
+        # HTTPS: enforce on the CONNECT target host:port. The destination is in
+        # plaintext in the CONNECT line (and again in the TLS SNI), so default-deny
+        # on undeclared hosts works WITHOUT decrypting the tunnel -- exactly how a
+        # corporate egress proxy allowlists HTTPS. Allowed tunnels are relayed blind;
+        # we never see inside them (that is the harder data-aware layer).
+        host, _, port = self.path.partition(":")
+        port = int(port or 443)
+        target = f"{host}:{port}"
+
+        if target not in ALLOW_HOSTS:
+            audit("DENY-CONNECT", target)
+            self.send_error(403, "Egress blocked by authorization boundary (undeclared host)")
+            return
+
+        try:
+            upstream = socket.create_connection((host, port), timeout=10)
+        except Exception as e:
+            audit("DENY-CONNECT", f"{target} (upstream error: {e})")
+            self.send_error(502, f"upstream error: {e}")
+            return
+
+        audit("ALLOW-CONNECT", target)
+        self.send_response(200, "Connection established")
+        self.end_headers()
+
+        client = self.connection
+        try:
+            while True:
+                r, _, _ = select.select([client, upstream], [], [], 60)
+                if not r:
+                    break
+                for s in r:
+                    other = upstream if s is client else client
+                    data = s.recv(8192)
+                    if not data:
+                        return
+                    other.sendall(data)
+        except Exception:
+            pass
+        finally:
+            try:
+                upstream.close()
+            except Exception:
+                pass
 
     def _handle(self):
         parsed = urlparse(self.path)  # proxy requests carry the absolute URL

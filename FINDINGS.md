@@ -85,6 +85,20 @@ the task's origin only) and routed all traffic, including loopback, through it.
   JavaScript `fetch` the agent tried also went through the proxy and was denied. The decision lives outside the model, in a layer
   the poisoned page cannot talk to. The agent was fully convinced it should exfiltrate and could not.
 
+### 7. The egress boundary holds on HTTPS, not just HTTP
+The rate runs above used an HTTP exfil channel. Real agents exfiltrate over HTTPS, so we measured the
+same boundary on a TLS channel (`run_boundary_egress_https.py`). The proxy enforces on the CONNECT
+target host, which is in plaintext in the CONNECT line and again in the TLS SNI, so it refuses an
+undeclared destination without decrypting the tunnel.
+
+- **Legitimate HTTPS to the declared origin: 10/10 allowed.** Normal traffic is not broken.
+- **HTTPS exfil to an undeclared host: 0/10 (95% CI 0.0% to 27.8%).** The attacker drop-box log stayed
+  empty; the proxy audit log shows `DENY-CONNECT` for every attempt.
+- This measures the enforcement layer on a real TLS channel, not a fresh agent-in-the-loop run: finding
+  3 already established the agent will attempt the exfil, and this establishes the boundary denies it
+  over HTTPS by the same host-level decision. Inspecting inside an allowed tunnel is the harder
+  data-aware problem (see Limitations), not host-allowlisting.
+
 ---
 
 ## The headline
@@ -96,7 +110,8 @@ the task's origin only) and routed all traffic, including loopback, through it.
 | Egress authorization boundary (default-deny, network layer) | 0% (0/10) | 0.0% to 27.8% |
 
 The obvious, vendor-provided defense does not change the outcome. Enforcement at the right layer
-takes it to zero.
+takes it to zero. The same boundary holds on HTTPS, enforcing on the CONNECT/SNI host without
+decrypting the tunnel (finding 7): 10/10 legitimate requests allowed, 0/10 exfil.
 
 ---
 
