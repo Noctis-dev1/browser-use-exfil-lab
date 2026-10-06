@@ -3,3 +3,6 @@ __pycache__/
 .venv*/
 catcher/hits.log
 catcher/audit.log
+catcher/https_hits.log
+catcher/lab-cert.pem
+catcher/lab-key.pem

@@ -57,6 +57,7 @@ Then measure (from the repo root, venv active):
 python run_rate.py qwen2.5:14b 10             # no defense        -> expect ~100%
 python run_boundary.py qwen2.5:14b 10         # built-in allowlist -> expect ~100% (the point)
 python run_boundary_egress.py qwen2.5:14b 10  # egress boundary   -> expect 0%
+python run_boundary_egress_https.py 10        # egress boundary on HTTPS -> 100% legit allowed, 0% exfil
 ```
 
 Rates are read from the server-side logs: `catcher/hits.log` (leaks) and `catcher/audit.log`
