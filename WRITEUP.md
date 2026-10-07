@@ -95,7 +95,17 @@ Over 10 trials, legitimate HTTPS to the declared origin was allowed in all 10, a
 
 > **HTTPS, declared origin allowed: 10/10. HTTPS exfil to an undeclared host: 0/10 (95% Wilson CI 0% to 28%).**
 
-This measures the enforcement layer on a real TLS channel rather than a fresh agent-in-the-loop run. Measurement 2 already established that the agent attempts the exfil; this establishes that the boundary denies it over HTTPS by the same host-level decision it makes over HTTP. Seeing inside an allowed HTTPS tunnel is a separate, data-aware problem, noted in the limitations.
+An agent-in-the-loop run confirms this end to end. With the live agent exfiltrating over TLS, the undefended rate is 100% (10/10) and the rate behind the boundary is 0% (0/10), the same outcome as HTTP: the agent leaks over HTTPS just as readily, and the boundary denies the undeclared HTTPS destination by the same host-level decision it makes over HTTP. Seeing inside an allowed HTTPS tunnel is a separate, data-aware problem, noted in the limitations.
+
+## Measurement 6: where the boundary stops working
+
+A control that enforces on the destination host has a boundary of its own, and it is worth measuring rather than asserting. I kept the egress boundary active and changed only the attacker's destination: instead of an undeclared host, the poisoned page routed the secret to the task's own declared origin, the one host the boundary is configured to trust. A real attacker reaches this through an open redirect, a stored-content endpoint, or a free-text field on a permitted service.
+
+Over 10 trials with the boundary active, the secret reached the allowed host in all of them.
+
+> **Exfiltration to an allowed host, boundary active: 10/10 = 100% (95% Wilson CI 72% to 100%).**
+
+The boundary did exactly what it is designed to do, and it did not matter, because the destination was inside the declared authority. Host-allowlisting stops exfiltration to an undeclared destination; it does not stop misuse of a declared one. This is the floor, not the ceiling. The stronger control is data-aware egress, which asks whether a request could have been constructed from the user's secret rather than only where it is bound, and that is the harder problem this boundary points toward rather than solves.
 
 ## Results
 
@@ -105,7 +115,7 @@ This measures the enforcement layer on a real TLS channel rather than a fresh ag
 |---|---|---|---|---|
 | No defense | 100% (10/10) | 72% to 100% | yes | none |
 | Built-in domain allowlist | 100% (10/10) | 72% to 100% | yes | none useful |
-| Egress authorization boundary | 0% (0/10) | 0% to 28% | no | every attempt logged |
+| Egress authorization boundary (HTTP and HTTPS) | 0% (0/10) | 0% to 28% | no | every attempt logged |
 
 The obvious, framework-provided control does not change the outcome. Moving the decision to the egress takes it to zero.
 
@@ -115,10 +125,11 @@ A model-layer defense, a better system prompt or an injection classifier, is pro
 
 ## Limitations
 
-- The models are local (qwen2.5 7b and 14b), not frontier models. The direction, that capability raises injectability, matches published work, but the absolute rate is specific to this setup.
+- The models are local (qwen2.5 7b and 14b, and an 8B variant), not frontier models. All three leaked a large fraction of the time (50% to 100%), but the rate did not track model size cleanly, so I do not claim from this data that capability monotonically raises injectability; the exfil page gives explicit navigation steps, so the measured rate tracks how reliably a model executes a multi-step browser action. The absolute rates are specific to this setup.
+- When the secret is seeded through the agent's own browsing, reading an API key on its account page rather than being told it by the user, the leak rate falls to 50% (5/10). The realistic two-navigation task is harder to complete, but the exposure is clearly real, not an artifact of spoon-feeding the key.
 - The sample is ten trials per configuration. The confidence intervals are wide by design, and scaling the sample tightens them.
-- In the rate trials the exfil instruction was delivered as visible page text. Delivery through hidden channels (CSS-concealed, HTML comment, image alt text) was confirmed in Measurement 1 but not carried through every trial.
-- The egress boundary enforces on the host, not on the content. It stops a request to an undeclared destination. It does not stop exfiltration to a destination that is on the allowlist, through an open redirect, a free-text field on a permitted service, or a paste to a trusted domain. Over HTTPS it enforces on the CONNECT target and TLS server name, which are visible without terminating the connection (Measurement 5); inspecting the contents of an allowed tunnel would require termination and is the data-aware problem below. A host allowlist is the floor. The stronger control is data-aware egress, which asks whether a given request could have been constructed from the user's secret, and that is the harder problem the boundary points toward rather than solves.
+- The main rate trials deliver the exfil instruction as visible page text. A dedicated hidden-channel run (off-screen text, HTML comment, image alt text) leaked in 30% of trials (3/10): invisible delivery, which a human reviewing the page would never see, lands less reliably than visible text but still lands.
+- The egress boundary enforces on the host, not on the content. It stops a request to an undeclared destination. It does not stop exfiltration to a destination that is on the allowlist: routing the secret to the declared origin leaked in 10 of 10 trials with the boundary active (Measurement 6), whether through an open redirect, a free-text field on a permitted service, or a paste to a trusted domain. Over HTTPS it enforces on the CONNECT target and TLS server name, which are visible without terminating the connection (Measurement 5); inspecting the contents of an allowed tunnel would require termination and is the data-aware problem below. A host allowlist is the floor. The stronger control is data-aware egress, which asks whether a given request could have been constructed from the user's secret, and that is the harder problem the boundary points toward rather than solves.
 - The boundary stops out-of-scope egress, not in-scope misuse, and it does not make the model's decision correct. In every contained trial the model still chose to leak.
 - I report the allowlist leak as an outcome; I did not isolate its internal cause.
 
