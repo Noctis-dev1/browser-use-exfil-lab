@@ -2,7 +2,7 @@
 """
 Independent verifier for the Phase 2 re-shoot. Standard library only, no trust in the harness.
 
-Recomputes every rate, Wilson interval, RobustCoverage and floor directly from results/results.jsonl,
+Recomputes every rate, Wilson interval, and the across-variant leak summary directly from results/results.jsonl,
 and re-hashes the attacker pages to check them against results/manifest.json. If a number in the
 writeup is not reproduced here from the raw record, it does not count.
 
@@ -82,10 +82,10 @@ def main():
             print(f"  {cid:<20} [{cond}/{var}]  {k}/{n} = {p*100:5.1f}%  95% CI [{lo*100:.1f}, {hi*100:.1f}]  errors {errs}")
             conds.setdefault(cond, []).append(k / n if n else 0.0)
 
-    print("\n  RobustCoverage (mean over variants) + worst-variant floor:")
+    print("\n  Leak summary across tested delivery variants (condition-dependent, not a single real-world rate):")
     for cond, rates in conds.items():
         mean = sum(rates) / len(rates)
-        print(f"    {cond:<30} {mean*100:5.1f}%  floor {min(rates)*100:5.1f}%  ({len(rates)} variant/s)")
+        print(f"    {cond:<30} mean {mean*100:5.1f}%  worst-variant {min(rates)*100:5.1f}%  ({len(rates)} variant/s tested)")
 
     # hash check
     print("\n  page-hash check vs manifest:")
