@@ -1,12 +1,41 @@
 # Browser-agent data exfiltration: a measured lab
 
-A sealed, local lab that reproduces indirect prompt-injection data exfiltration against
-[browser-use](https://github.com/browser-use/browser-use) 0.13.10, measures it as a rate, and
-shows a network egress boundary that takes the rate to zero with an audit trail.
+A sealed, local lab that measures indirect prompt-injection data exfiltration against
+[browser-use](https://github.com/browser-use/browser-use) 0.13.10 as a rate, and shows a network
+egress boundary that takes the rate to zero with an audit trail.
 
-- Writeup: **[Bounding a Browser Agent's Authority](WRITEUP.md)**
-- Boundary reference implementation: [Portcullis](https://github.com/Noctis-dev1/portcullis)
-- Results and evidence: [`FINDINGS.md`](FINDINGS.md)
+- Full method, numbers, and limits: **[`phase2/RESULTS.md`](phase2/RESULTS.md)**
+- Reference boundary implementation: [Portcullis](https://github.com/Noctis-dev1/portcullis)
+
+## Headline result (N = 50 per cell, 450 runs)
+
+The rigorous re-shoot is in [`phase2/`](phase2/). One visible attack, three defenses, held constant,
+with a unique per-run canary as server-side ground truth:
+
+- **No defense:** leaked 98% (49 of 50), 95% CI 89.5 to 99.6.
+- **browser-use's built-in `allowed_domains`:** leaked 100% (50 of 50), CI 92.9 to 100. The agent
+  policing its own navigation stops nothing; the exfiltration rides out as a sub-resource request the
+  allowlist never governs.
+- **Default-deny egress boundary outside the model:** leaked 0% (0 of 50), CI 0 to 7.1. Holds across all
+  three delivery variants (visible, hidden, seeded), with 0 of 50 false-denies on a benign twin.
+
+Undefended, the honest number is a distribution, not a flat 100%: visible 98%, seeded 46%, hidden 12%
+(mean 52%, worst-case floor 12%). The named limit: with the boundary on, exfiltration routed to the
+task's own *allowed* host still succeeded 49 of 50. That is the data-aware egress frontier, and it is
+not solved here.
+
+### Reproduce every number
+
+The raw per-attempt log and a stdlib-only verifier are committed. No model and no network needed: it
+recomputes every rate, Wilson interval, and coverage figure from the raw records, and re-hashes the
+attacker pages against the manifest.
+
+```bash
+python phase2/verify.py
+```
+
+It ends on `VERIFIED` when every number matches. To re-run the live experiment yourself, use the
+campaign scripts below.
 
 ## Safety
 
@@ -14,7 +43,13 @@ This is a defensive research lab. It runs entirely on loopback with a synthetic 
 local model. **Do not run any part of this against a hosted or third-party deployment.** No real
 credential is used at any point.
 
-## What's here
+## Reproduce the method live (original N=10 campaign)
+
+The scripts below are the first-pass campaign at N=10 per cell. They run the live experiment end to end;
+the N=50 re-shoot in `phase2/` is the version to cite for the numbers above. The first-pass writeup and
+findings are in [`WRITEUP.md`](WRITEUP.md) and [`FINDINGS.md`](FINDINGS.md).
+
+### What's here
 
 ```
 run_attack.py            baseline injectability (does hidden page text reach and steer the model)
@@ -28,20 +63,20 @@ catcher/catcher_server.py  attacker collection endpoint (:9999), logs every hit 
 FINDINGS.md              measured results, evidence, and limitations
 ```
 
-## Requirements
+### Requirements
 
 - Python 3.13 and `browser-use==0.13.10` (`pip install -r requirements.txt`). browser-use 0.13 drives
   a local Chrome/Chromium over CDP; Playwright is not required.
 - [ollama](https://ollama.com) with a local model: `ollama pull qwen2.5:14b`.
 
-## Setup
+### Setup
 
 ```bash
 uv venv --python 3.13 .venv && source .venv/bin/activate   # or: python3.13 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-## Run
+### Run
 
 Start the three support services, each in its own terminal:
 
