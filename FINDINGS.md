@@ -1,5 +1,11 @@
 # Browser-use indirect prompt injection: engagement findings
 
+> **Superseded by the N=50 re-shoot.** This is the first-pass N=10 campaign (fixed canary
+> `CANARY-7F3A2C`). The current method and numbers — 50 trials per cell, 450 runs, a unique per-run
+> canary, Wilson intervals, and a stdlib verifier that recomputes every figure — are in
+> [`phase2/RESULTS.md`](phase2/RESULTS.md) and reproduce with `python phase2/verify.py`. Cite phase2 for
+> the rates; this file is kept as the engagement history.
+
 **Engagement:** public-proof red-team #1
 **Date:** 2026-10-03
 **Author:** Malachi Zion Kopman (Noctis)

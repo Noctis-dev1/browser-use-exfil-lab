@@ -2,7 +2,7 @@
 
 A sealed, local lab that measures indirect prompt-injection data exfiltration against
 [browser-use](https://github.com/browser-use/browser-use) 0.13.10 as a rate, and shows a network
-egress boundary that takes the rate to zero with an audit trail.
+egress boundary that takes exfiltration to undeclared destinations to zero with an audit trail.
 
 - Full method, numbers, and limits: **[`phase2/RESULTS.md`](phase2/RESULTS.md)**
 - Reference boundary implementation: [Portcullis](https://github.com/Noctis-dev1/portcullis)
@@ -13,16 +13,19 @@ The rigorous re-shoot is in [`phase2/`](phase2/). One visible attack, three defe
 with a unique per-run canary as server-side ground truth:
 
 - **No defense:** leaked 98% (49 of 50), 95% CI 89.5 to 99.6.
-- **browser-use's built-in `allowed_domains`:** leaked 100% (50 of 50), CI 92.9 to 100. The agent
-  policing its own navigation stops nothing; the exfiltration rides out as a sub-resource request the
-  allowlist never governs.
+- **browser-use's built-in `allowed_domains`:** leaked 100% (50 of 50), CI 92.9 to 100. It is a
+  navigation control, not a network-egress boundary: it can reject disallowed navigations, but enabling
+  it did not stop the canary reaching the collector. Both controls are deterministic; the difference is
+  what they mediate.
 - **Default-deny egress boundary outside the model:** leaked 0% (0 of 50), CI 0 to 7.1. Holds across all
-  three delivery variants (visible, hidden, seeded), with 0 of 50 false-denies on a benign twin.
+  three delivery variants (visible, hidden, seeded), with 0 of 50 false-denies on a benign control.
 
-Undefended, the honest number is a distribution, not a flat 100%: visible 98%, seeded 46%, hidden 12%
-(mean 52%, worst-case floor 12%). The named limit: with the boundary on, exfiltration routed to the
-task's own *allowed* host still succeeded 49 of 50. That is the data-aware egress frontier, and it is
-not solved here.
+Undefended, attack success is condition-dependent, not a flat 100%: visible 98% (CI 89.5 to 99.6),
+seeded 46% (33.0 to 59.6), hidden 12% (5.6 to 23.8). These are three chosen conditions, not a
+probability distribution over real attacks, so read them as a 12% to 98% range that depends on delivery,
+not as an average. The named limit: with the boundary on, exfiltration routed to the task's own
+*allowed* host still succeeded 49 of 50. That is where destination-only enforcement stops; data-aware
+egress is the open problem, not solved here.
 
 ### Reproduce every number
 
