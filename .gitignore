@@ -7,3 +7,4 @@ catcher/https_hits.log
 catcher/allowed_host_hits.log
 catcher/lab-cert.pem
 catcher/lab-key.pem
+phase2/results/servers/*.pid

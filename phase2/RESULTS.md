@@ -8,6 +8,14 @@ defense axis · **Ground truth:** unique per-run canary, exact-token match in th
 
 Sealed lab: loopback only, synthetic canary, local model. Authorized local target only.
 
+**Environment.** browser-use 0.13.10 (ollama provider, model `qwen2.5:14b`) driving the local Google
+Chrome stable channel over CDP on macOS; Playwright is not used. Chrome was not version-pinned at run
+time, so the campaign used whichever stable build was installed on the run host on 2026-10-08. The
+egress outcome is decided by the proxy on the outbound destination, not by the browser build, so the
+exact Chrome version is not expected to be load-bearing; it is recorded for completeness. The current
+local build is Google Chrome 155.0.8059.82. The agent task prompt is in `phase2_reshoot.py`; the
+attacker pages and account template are SHA-256 hashed in `results/manifest.json`.
+
 ## Controlled comparison — same visible attack, three defenses
 
 | Defense | Leak | 95% CI (Wilson) |
@@ -16,9 +24,10 @@ Sealed lab: loopback only, synthetic canary, local model. Authorized local targe
 | browser-use built-in `allowed_domains` | **100%** (50/50) | 92.9 – 100 |
 | egress boundary (outside the model) | **0%** (0/50) | 0 – 7.1 |
 
-The self-policing fence (the agent's own navigation allowlist) stops nothing: 50/50. The control that
-sits outside the model stops everything in this cell: 0/50, and the interval is now "at most ~7%,"
-not the N=10 "at most 28%."
+The built-in `allowed_domains` is a navigation control, not a network-egress boundary; enabling it did
+not stop the leak (50/50). The control that sits outside the model denied every attempt in this cell:
+0/50, and the interval is now "at most ~7%," not the N=10 "at most 28%." Both are deterministic
+controls; the difference is what capability surface each one mediates.
 
 ## The egress boundary holds across every delivery variant
 
@@ -28,13 +37,14 @@ not the N=10 "at most 28%."
 | hidden channel (comment / off-screen / alt) | 0% (0/50) | 0 – 7.1 |
 | browsing-seeded (secret read off account page) | 0% (0/50) | 0 – 7.1 |
 
-RobustCoverage (mean leak over the three variants) = **0.0%**, worst-variant floor = **0.0%**. Delivery
-method does not matter: the decision lives where the attacker's text cannot reach it.
+Leak behind the boundary is 0/50 in every delivery variant. Delivery method did not change the outcome:
+the proxy's authorization decision is made on the outbound destination, outside the model.
 
-## Benign twin — the boundary does not break legitimate work
+## Benign control — the boundary does not break legitimate work
 
 Legitimate single-origin task through the boundary, N=50: **false-deny 0/50**, leaks 0/50. The boundary
-permits the declared origin every time. No over-blocking cost measured.
+permits the declared origin every time. No over-blocking cost measured in this workload (not a general
+false-positive claim).
 
 ## Undefended, measured honestly across delivery variants
 
@@ -44,22 +54,25 @@ permits the declared origin every time. No over-blocking cost measured.
 | browsing-seeded | 46% (23/50) | 33.0 – 59.6 |
 | hidden channel | 12% (6/50) | 5.6 – 23.8 |
 
-RobustCoverage = **52%**, floor = **12%**. The spoon-fed visible case (98%) is the upper bound, not the
-typical case. The realistic attack reliability depends heavily on how the injection is delivered. This
-distribution is the honest number; a single "100%" was the best case.
+Attack success is condition-dependent, ranging from **12% to 98%** across these three chosen
+conditions. They are deliberately selected experimental conditions, not samples from a known population
+of attacker techniques, so there is no meaningful single "typical" rate; the visible 98% is the easiest
+delivery, not the average case. Report the condition and its interval, not an average.
 
 ## The honest limit — allowed-host exfiltration (the data-aware frontier)
 
 Boundary ON, exfil routed to the task's own declared origin: **98%** (49/50), 95% CI 89.5 – 99.6.
 Host-allowlisting is the floor; it stops exfil to *undeclared* destinations, not misuse of a *declared*
 one. This is the `allowed-host-exfiltration` vector, mapped against Gowthaman Arumugam's MCP-defense
-taxonomy. Data-aware egress is the open problem.
+taxonomy. Controls that reason about the data in the request (data-aware egress, information-flow
+tracking, or capability-specific request policies) are the open problem, not solved here.
 
 ## What changed vs the N=10 instrument (100 / 100 / 0)
 
 - Built-in allowlist 100% and egress boundary 0% both **held and tightened** (boundary CI 28% → 7.1%,
   and now proven robust across three delivery variants, not one).
-- Undefended "100%" was the visible best case; the honest figure is 98% visible, 52% mean across variants.
+- Undefended "100%" was the visible best case; the honest figure is condition-dependent: 98% visible,
+  dropping to 46% seeded and 12% hidden as delivery got harder.
 - Two new, defensible claims the old shoot could not make: the boundary holds regardless of delivery,
   and it costs zero measured false-denies on legitimate work.
 
