@@ -1,0 +1,14 @@
+{
+  "campaign": "deputy-relay varied-framing (N=50, two arms)",
+  "model": "qwen2.5:14b",
+  "runner": "deputy/run_deputy_varied.py",
+  "page_sha256": {
+    "page_deputy.html": "603295bab77a8df9f2b2aca62905f30a8c09b3cfb5817c29446de3baf6ba9daf",
+    "page_deputy_subtle.html": "47c7e53308677830fb859ac94bcee8e4c1884aeecd4e744115c2d4995b12d52c"
+  },
+  "deputy_sha256": {
+    "deputy_server.py": "a7ed0673cd4174692c7f51e9b9313a9df04ba80bf21330527b245595f3216173",
+    "deputy_proxy.py": "f1170f265e1ca22f895ee72caacec798dc0621ab4d5c6698670fded46c949055",
+    "relay_probe.py": "17e115c88cf29e1c01ad131951ff217d2c1d6ed4c20d6f59cc53a17071edc3ff"
+  }
+}

@@ -40,6 +40,22 @@ python phase2/verify.py
 It ends on `VERIFIED` when every number matches. To re-run the live experiment yourself, use the
 campaign scripts below.
 
+## Phase 3: living off the allowlist (deputy relay)
+
+[`deputy/`](deputy/) extends the same lab to the confused-deputy case: a secret routed through an
+intermediary the egress allowlist already permits. Two measured claims, the same ground-truth discipline.
+
+- **Coverage (deterministic, no model).** A destination-host egress allowlist does not contain a relay
+  through an allowed intermediary. Mediating the intermediary's own onward hop closes it, without breaking
+  a legitimate relay to a permitted host. Re-derive live: `python3 deputy/relay_probe.py`
+- **Behaviour (live agent, N = 50, two injection framings).** A goal-directed agent routed the secret
+  through the allowed deputy in 49 of 50 runs (98%, 95% CI 89.5 to 99.6), and a quiet lure worked at least
+  as well as an alarming one.
+- **Verify without a model:** `python3 deputy/verify.py` re-derives every leak from the frozen server-side
+  landing evidence, recomputes the rates and intervals, checks the coverage cells, and ends on `VERIFIED`.
+
+Full method, the measured fix, and limits: [`deputy/DEPUTY_RELAY.md`](deputy/DEPUTY_RELAY.md).
+
 ## Safety
 
 This is a defensive research lab. It runs entirely on loopback with a synthetic canary token and a
